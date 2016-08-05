@@ -16,3 +16,4 @@
 /libserialport.pc
 /libtool
 stamp-h?
+*.swp
