@@ -22,7 +22,7 @@ CC = gcc
 CFLAGS = -g -Wall
 
 # libserialport version number info and library version whatnot
-# TODO: we could extract this stuff from configure.ac
+# FIXME: we could extract this stuff from configure.ac, but we're too lazy for that!
 MAJOR = 0
 MINOR = 1
 MICRO = 1
@@ -37,9 +37,12 @@ OBJS = $(SRCS:.c=.o)
 PERL=c:/cygwin/bin/perl.exe
 
 %.o : %.c
-	$(CC) $(CFLAGS) -I. -c $< -o $*.o
+	$(CC) $(CFLAGS) -DSP_PRIV=static -DSP_API= -I. -c $< -o $*.o
 
-all : libserialport.h config.h $(OBJS)
+all : libserialport.a
+
+libserialport.a : libserialport.h config.h $(OBJS)
+	ar ruv $@ $(OBJS)
 
 # Generate libserialport.h
 libserialport.h : libserialport.h.in
@@ -57,8 +60,9 @@ libserialport.h : libserialport.h.in
 
 # Generate config.h
 config.h :
-	$(PERL) -e '' > config.h
+	$(PERL) -e "" > config.h
 
 clean :
-	del libserialport.h
-	del config.h
+	-del libserialport.h
+	-del config.h
+	-del *.o
