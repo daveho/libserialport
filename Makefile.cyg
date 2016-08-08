@@ -1,0 +1,58 @@
+# Compile libserialport using the i686-w64-mingw32-gcc cross compiler
+# under Cygwin.  This avoids all of the automake crud.  Just run
+# the command
+#
+#     make -f Makefile.cyg
+#
+# to get a usable libserialport.a.
+
+CC = i686-w64-mingw32-gcc
+CFLAGS = -g -Wall
+
+AR = i686-w64-mingw32-ar
+
+RM = rm -f
+PERL = perl
+
+# libserialport version number info and library version whatnot,
+# extracted from configure.ac
+MAJOR := $(shell $(PERL) extractify.pl SP_PACKAGE_VERSION_MAJOR < configure.ac)
+MINOR :=  $(shell $(PERL) extractify.pl SP_PACKAGE_VERSION_MINOR < configure.ac)
+MICRO :=  $(shell $(PERL) extractify.pl SP_PACKAGE_VERSION_MICRO < configure.ac)
+CURRENT := $(shell $(PERL) extractify.pl SP_LIB_VERSION_CURRENT < configure.ac)
+REVISION := $(shell $(PERL) extractify.pl SP_LIB_VERSION_REVISION < configure.ac)
+AGE := $(shell $(PERL) extractify.pl SP_LIB_VERSION_AGE < configure.ac)
+
+SRCS = serialport.c windows.c
+OBJS = $(SRCS:.c=.o)
+
+%.o : %.c
+	$(CC) $(CFLAGS) -DSP_PRIV=static -DSP_API= -I. -c $< -o $*.o
+
+all : libserialport.a
+
+libserialport.a : libserialport.h config.h $(OBJS)
+	$(AR) ruv $@ $(OBJS)
+
+# Generate libserialport.h
+libserialport.h : libserialport.h.in
+	$(PERL) mungeheader.pl \
+		SP_PACKAGE_VERSION_MAJOR=$(MAJOR) \
+		SP_PACKAGE_VERSION_MINOR=$(MINOR) \
+		SP_PACKAGE_VERSION_MICRO=$(MICRO) \
+		SP_PACKAGE_VERSION_STRING="\"$(MAJOR).$(MINOR).$(MICRO)\"" \
+		SP_LIB_VERSION_CURRENT=$(CURRENT) \
+		SP_LIB_VERSION_REVISION=$(REVISION) \
+		SP_LIB_VERSION_AGE=$(AGE) \
+		SP_LIB_VERSION_STRING="\"$(CURRENT).$(REVISION).$(AGE)\"" \
+		< libserialport.h.in \
+		> libserialport.h
+
+# Generate config.h
+config.h :
+	touch $@
+
+clean :
+	-$(RM) libserialport.h
+	-$(RM) config.h
+	-$(RM) *.o
