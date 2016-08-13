@@ -27,7 +27,7 @@ SRCS = serialport.c windows.c
 OBJS = $(SRCS:.c=.o)
 
 %.o : %.c
-	$(CC) $(CFLAGS) -DSP_PRIV=static -DSP_API= -I. -c $< -o $*.o
+	$(CC) $(CFLAGS) -DSP_PRIV= -DSP_API= -I. -c $< -o $*.o
 
 all : libserialport.a
 
